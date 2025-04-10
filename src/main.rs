@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::io::Read;
-use std::str::FromStr;
 
 fn main() {
     let action = std::env::args().nth(1).expect("Please specify an action");
@@ -33,32 +31,21 @@ struct Todo {
 
 impl Todo {
     fn new() -> Result<Todo, std::io::Error > {
-        // configure how to open the "db.txt" file by defining various OpenOptions
+        // configure how to open the "db.json" file by defining various OpenOptions
         // (e.g., the create(true) flag will create the file if it's not already present)
-        let mut f = std::fs::OpenOptions::new()
+        let f = std::fs::OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open("db.txt")?;
-        // read all the bytes and append them into the content String
-        let mut content = String::new();
-        f.read_to_string(&mut content)?;
-
-        // convert from the String type of the file to a HashMap (i.e., one of the occasions where the
-        // compiler has trouble inferring the type for us, so we declare it)
-        let mut map = HashMap::new();
-
-        // loop over each lines of the file
-        for entries in content.lines() {
-            // split and bind values
-            let mut values = entries.split('\t');
-            let key = values.next().expect("No Key");
-            let val = values.next().expect("No Value");
-            // insert them into HashMap
-            map.insert(String::from(key), bool::from_str(val).unwrap());
+            .open("db.json")?;
+        // serialize json as HashMap
+        match serde_json::from_reader(f) {
+            Ok(map) => Ok(Todo { map }),
+            Err(error) if error.is_eof() => Ok(Todo {
+                map: HashMap::new(),
+            }),
+            Err(error) => panic!("An error occurred: {}", error),
         }
-        // Return Ok
-        Ok(Todo { map })
     }
 
     fn insert(&mut self, key: String) {
@@ -70,17 +57,15 @@ impl Todo {
     // save takes ownership of self to "enforce" save as the last method to be used. the compiler
     // would stop us if we were to accidentally try to update the map after we called save
     // (as the memory of self would be freed).
-    fn save(self) -> Result<(), std::io::Error> {
-        // iterate over the map, and format each string, separating key and value with a tab
-        // character and each line with a new line
-        // push the formatted string into a content variable
-        // write content inside a file called db.txt
-        let mut content = String::new();
-        for (k, v) in self.map{
-            let record = format!("{}\t{}\n", k, v);
-            content.push_str(&record)
-        }
-        std::fs::write("db.txt", content)
+    fn save(self) -> Result<(), Box<dyn std::error::Error>> {
+        // open db.json
+        let f = std::fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .open("db.json")?;
+        // write to file with serde
+        serde_json::to_writer_pretty(f, &self.map)?;
+        Ok(())
     }
 
     // complete returns the result of the Match expression which will be either an empty Some() or None
