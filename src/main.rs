@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::io::Read;
+use std::str::FromStr;
 
 fn main() {
     let action = std::env::args().nth(1).expect("Please specify an action");
@@ -6,13 +8,11 @@ fn main() {
 
     println!("{:?}, {:?}", action, item);
 
-    let mut todo = Todo {
-        map: HashMap::new(),
-    };
+    let mut todo = Todo::new().expect("Failed to initialize db");
     if action == "add" {
         todo.insert(item);
         match todo.save() {
-            Ok(_) => println!("todo added"),
+            Ok(_) => println!("Todo added"),
             Err(error) => println!("{}", error),
         }
     }
@@ -24,6 +24,35 @@ struct Todo {
 }
 
 impl Todo {
+    fn new() -> Result<Todo, std::io::Error > {
+        // configure how to open the "db.txt" file by defining various OpenOptions
+        // (e.g., the create(true) flag will create the file if it's not already present)
+        let mut f = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open("db.txt")?;
+        // read all the bytes and append them into the content String
+        let mut content = String::new();
+        f.read_to_string(&mut content)?;
+
+        // convert from the String type of the file to a HashMap (i.e., one of the occasions where the
+        // compiler has trouble inferring the type for us, so we declare it)
+        let mut map = HashMap::new();
+
+        // loop over each lines of the file
+        for entries in content.lines() {
+            // split and bind values
+            let mut values = entries.split('\t');
+            let key = values.next().expect("No Key");
+            let val = values.next().expect("No Value");
+            // insert them into HashMap
+            map.insert(String::from(key), bool::from_str(val).unwrap());
+        }
+        // Return Ok
+        Ok(Todo { map })
+    }
+
     fn insert(&mut self, key: String) {
         // insert a new item into our map
         // pass true as value
@@ -34,7 +63,6 @@ impl Todo {
     // would stop us if we were to accidentally try to update the map after we called save
     // (as the memory of self would be freed).
     fn save(self) -> Result<(), std::io::Error> {
-        // -> annotates the returned type from the function: a Result
         // iterate over the map, and format each string, separating key and value with a tab
         // character and each line with a new line
         // push the formatted string into a content variable
