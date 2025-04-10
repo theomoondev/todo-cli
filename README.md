@@ -17,11 +17,15 @@ This project was intended to help me learn and practice the following concepts:
 
 1. `add` adds a todo item to the list in the form of "action item" (or marks an existing completed item as uncompleted).
 
-`cargo run -- add "make coffee"`
+```
+cargo run -- add "code rust"
+```
 
 2. `complete` marks an existing todo item as completed.
 
-`cargo run -- complete "make coffee"`
+```
+cargo run -- complete "code rust"
+```
 
 Note: Todo lists are automatically saved into a `db.json` file and stored locally. `true` indicates the item is uncompleted, while `false` indicates the item is completed (i.e., it no longer exists in the list).
 
