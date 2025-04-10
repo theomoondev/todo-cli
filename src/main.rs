@@ -13,7 +13,15 @@ fn main() {
         todo.insert(item);
         match todo.save() {
             Ok(_) => println!("Todo added"),
-            Err(error) => println!("{}", error),
+            Err(error) => println!("An error occurred: {}", error),
+        }
+    } else if action == "complete" {
+        match todo.complete(&item) {
+            None => println!("'{}' is not present in the list", item),
+            Some(_) => match todo.save() {
+                Ok(_) => println!("Todo completed"),
+                Err(error) => println!("An error occurred: {}", error),
+            }
         }
     }
 }
@@ -73,5 +81,15 @@ impl Todo {
             content.push_str(&record)
         }
         std::fs::write("db.txt", content)
+    }
+
+    // complete returns the result of the Match expression which will be either an empty Some() or None
+    fn complete(&mut self, key: &String) -> Option<()> {
+        // get mutable reference to the value of key, or None if the value is not present in the collection
+        match self.map.get_mut(key) {
+            // de-reference the value and set it to false
+            Some(value) => Some(*value = false),
+            None => None,
+        }
     }
 }
