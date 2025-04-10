@@ -5,6 +5,17 @@ fn main() {
     let item = std::env::args().nth(2).expect("Please specify an item");
 
     println!("{:?}, {:?}", action, item);
+
+    let mut todo = Todo {
+        map: HashMap::new(),
+    };
+    if action == "add" {
+        todo.insert(item);
+        match todo.save() {
+            Ok(_) => println!("todo added"),
+            Err(error) => println!("{}", error),
+        }
+    }
 }
 
 struct Todo {
