@@ -1,6 +1,6 @@
 # todo-cli
 
-A simple Todo List app built by following (freeCodeCamp)[https://www.freecodecamp.org/news/how-to-build-a-to-do-app-with-rust/]. 
+A simple Todo List app built in Rust using a [freeCodeCamp tutorial](https://www.freecodecamp.org/news/how-to-build-a-to-do-app-with-rust/). 
 
 This project was intended to help me learn and practice the following concepts:
 - Error handling in Rust
@@ -27,7 +27,8 @@ cargo run -- add "code rust"
 cargo run -- complete "code rust"
 ```
 
-Note: Todo lists are automatically saved into a `db.json` file and stored locally. `true` indicates the item is uncompleted, while `false` indicates the item is completed (i.e., it no longer exists in the list).
+
+Note: Todo lists are automatically saved into a `db.json` file and stored locally. `true` indicates the item is uncompleted (i.e., exists in the list), while `false` indicates the item is completed (i.e., no longer exists in the list).
 
 ```
 {
